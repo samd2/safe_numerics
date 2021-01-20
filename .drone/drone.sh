@@ -1,6 +1,10 @@
 #!/bin/bash
 
-set -ex
+# Copyright 2020 Rene Rivera, Sam Darwin
+# Distributed under the Boost Software License, Version 1.0.
+# (See accompanying file LICENSE.txt or copy at http://boost.org/LICENSE_1_0.txt)
+
+set -e
 export TRAVIS_BUILD_DIR=$(pwd)
 export DRONE_BUILD_DIR=$(pwd)
 export TRAVIS_BRANCH=$DRONE_BRANCH
@@ -9,9 +13,7 @@ export GIT_COMMIT=$DRONE_COMMIT
 export REPO_NAME=$DRONE_REPO
 export PATH=~/.local/bin:/usr/local/bin:$PATH
 
-echo '==================================> BEFORE_INSTALL'
-
-. .drone/before-install.sh
+if [ "$DRONE_JOB_BUILDTYPE" == "boost" ]; then
 
 echo '==================================> INSTALL'
 
@@ -30,15 +32,9 @@ python tools/boostdep/depinst/depinst.py safe_numerics
 ./bootstrap.sh
 ./b2 headers
 
-echo '==================================> BEFORE_SCRIPT'
-
-. $DRONE_BUILD_DIR/.drone/before-script.sh
-
 echo '==================================> SCRIPT'
 
 echo "using $TOOLSET : : $COMPILER ;" > ~/user-config.jam
 ./b2 -j 3 libs/safe_numerics/test toolset=$TOOLSET cxxstd=$CXXSTD
 
-echo '==================================> AFTER_SUCCESS'
-
-. $DRONE_BUILD_DIR/.drone/after-success.sh
+fi
